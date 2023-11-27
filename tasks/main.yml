@@ -1,7 +1,7 @@
 ---
 # roles/port_forward_container/tasks/main.yml
 
-- name: 'Start port_forward_container for {{ VIRTUAL_HOST }}'
+- name: 'Start port_forward_container for {{ virtual_host }}'
   community.general.docker_container:
     name: 'port_forward_for_{{ VIRTUAL_HOST | replace(",", "-") }}'
     image: 'marcnuri/port-forward'
@@ -9,12 +9,66 @@
     restart_policy: always
     recreate: true
     networks:
-      - name: "{{ DOCKER_NETWORK_NAME }}"
+      - name: "{{ docker_network_name }}"
     networks_cli_compatible: true
     pull: true
     env:
       REMOTE_HOST: '{{ REMOTE_HOST }}'
       REMOTE_PORT: '{{ REMOTE_PORT }}'
-      VIRTUAL_HOST: '{{ VIRTUAL_HOST }}'
-      LETSENCRYPT_HOST: '{{ VIRTUAL_HOST }}'
-      LETSENCRYPT_EMAIL: '{{ LETSENCRYPT_EMAIL }}'
+      VIRTUAL_HOST: '{{ virtual_host }}'
+      LETSENCRYPT_HOST: '{{ virtual_host }}'
+      LETSENCRYPT_EMAIL: '{{ letsencrypt_email }}'
+
+- name: Include podman_init_vars.yml from sleif.podman
+  ansible.builtin.include_tasks: "{{ lookup('first_found', params) }}"
+  vars:
+    params:
+      files: sleif.podman/tasks/includes/podman_init_vars.yml
+      paths: "{{ lookup('config', 'DEFAULT_ROLES_PATH') }}"
+
+- name: Include role sleif.podman podman_operation podman_pod_create - creates a pod if necessary
+  ansible.builtin.include_role:
+    name: sleif.podman
+    apply:
+      tags:
+        - podman_pod_create
+  vars:
+    podman_operation: podman_pod_create
+  tags: always
+
+- name: Pull container image {{ port_forward_container_image }}
+  become: "{{ podman_rootless | bool }}"
+  become_user: "{{ podman_user if podman_rootless | bool else omit }}"
+  containers.podman.podman_image:
+    name: "{{ port_forward_container_image }}"
+    tag: "{{ port_forward_container_image_tag }}"
+    # force: true
+
+- name: Create Redis container
+  become: "{{ podman_rootless | d(true) | bool }}"
+  become_user: "{{ podman_user if podman_rootless | d(true) | bool else omit }}"
+  containers.podman.podman_container:
+    name: "{{ container_name }}"
+    image: "{{ port_forward_container_image }}:{{ port_forward_container_image_tag }}"
+    state: created
+    pod: "{{ pod_name | default(omit) }}"
+    restart_policy: always
+    recreate: "{{ podman_container_recreate | d(false) }}"
+    # publish:
+    #   - "6379:6379"
+    network: "{{ podman_network_name if pod_name | d('') is falsy else [] }}"
+    timezone: "local"
+  register: _container_create_results
+
+# - debug: var=_container_create_results
+
+- name: Include role sleif.podman podman_operation podman_generate_systemd
+  ansible.builtin.include_role:
+    name: sleif.podman
+    apply:
+      tags:
+        - podman_generate_systemd
+  vars:
+    podman_operation: podman_generate_systemd
+    target: "{{ pod_name if pod_name | d('') is truthy else container_name }}"
+  tags: always

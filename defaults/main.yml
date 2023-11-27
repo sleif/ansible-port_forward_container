@@ -1,3 +1,6 @@
 ---
 
-DOCKER_NETWORK_NAME: "custom-bridge"
+port_forward_container_base_name: "pf_"
+podman_network_name: podman
+port_forward_container_image: "docker.io/marcnuri/port-forward"
+port_forward_container_image_tag: 'latest'

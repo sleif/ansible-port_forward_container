@@ -1,8 +1,8 @@
 ---
 galaxy_info:
-  role_name: port_forward_docker
+  role_name: port_forward_container
   author: Sebastian Berthold
-  description: starts a socat based port redirection instance on docker
+  description: starts a socat based port redirection instance
   # company: your company (optional)
 
   # If the issue tracker for your role is not on github, uncomment the
@@ -18,7 +18,7 @@ galaxy_info:
   # - CC-BY-4.0
   license: MIT
 
-  min_ansible_version: 2.10
+  min_ansible_version: "2.12"
 
   # If this a Container Enabled role, provide the minimum Ansible Container version.
   # min_ansible_container_version:
@@ -43,11 +43,10 @@ galaxy_info:
   platforms:
     - name: EL
       versions:
-        - 7
-        - 8
+        - "8"
+        - "9"
 
   galaxy_tags:
-    - docker
     - containers
     - socat
     # List tags for your role here, one per line. A tag is a keyword that describes
@@ -58,5 +57,4 @@ galaxy_info:
     #       Maximum 20 tags per role.
 
 
-dependencies:
-  - {role: sleif.docker}
+dependencies: []
