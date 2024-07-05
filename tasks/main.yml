@@ -62,13 +62,13 @@
 
 # - debug: var=_container_create_results
 
-- name: Include role sleif.podman podman_operation podman_generate_systemd
+- name: Include role sleif.podman podman_operation podman_systemd_restart_pod_or_container
   ansible.builtin.include_role:
     name: sleif.podman
     apply:
       tags:
-        - podman_generate_systemd
+        - podman_systemd_restart_pod_or_container
   vars:
-    podman_operation: podman_generate_systemd
+    podman_operation: podman_systemd_restart_pod_or_container
     target: "{{ pod_name if pod_name | d('') is truthy else container_name }}"
   tags: always
