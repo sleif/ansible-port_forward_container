@@ -12,7 +12,6 @@ None
 - remote_host
 - remote_port
 
-
 ## Example Playbook
 
     - hosts: "server"
@@ -22,7 +21,7 @@ None
       roles:
         - { role: sleif.nginx_docker, tags: "nginx_docker",
                                           virtual_host: "external-host.example.com",
-                                          remote_host: "target-host.internal.excample.com",
+                                          remote_host: "target-host.internal.example.com",
                                           remote_port: "8080" }
 
 ## License
