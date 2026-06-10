@@ -71,4 +71,5 @@
   vars:
     podman_operation: podman_systemd_restart_pod_or_container
     target: "{{ pod_name if pod_name | d('') is truthy else container_name }}"
+    target_container: "{{ container_name }}"
   tags: always
